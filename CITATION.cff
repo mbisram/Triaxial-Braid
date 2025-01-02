@@ -1,0 +1,26 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Triaxial Braid Multiscale Model
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Marisa
+    family-names: Bisram
+    email: mbisram@u.northwestern.edu
+  - given-names: Jin
+    family-names: Choi
+    email: jinchoi2024@u.northwestern.edu
+  - given-names: Sanjana
+    family-names: Subramaniam
+    email: ssubramaniam@u.northwestern.edu
+  - given-names: Jian
+    family-names: Cao
+    email: jcao@northwestern.edu
+identifiers:
+  - type: url
+    value: 'https://github.com/mbisram/Triaxial-Braid'
+repository-code: 'https://github.com/mbisram/Triaxial-Braid'
