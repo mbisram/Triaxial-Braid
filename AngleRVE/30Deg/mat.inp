@@ -1,0 +1,108 @@
+*Orientation, name=CSV-1
+1., 0., 0., 0., 1., 0.
+********************
+*** ORIENTATIONS ***
+********************
+** Orientation vectors
+** 1st vector represents the fibre direction
+** 2nd vector is an arbitrary vector perpendicular to the first
+*Distribution Table, Name=OrientationVectors
+COORD3D,COORD3D
+*Distribution, Location=Element, Table=OrientationVectors, Name=OrientationVectors, Input=orientations.txt
+*Orientation, Name=Orientations, Definition=coordinates
+OrientationVectors
+1, 0
+*****************
+*** MATERIALS ***
+*****************
+*****TC-275-1 resin
+**********mat2=angled bias 63%FVF
+*Material, name=Mat2
+*Density
+ 1.566e-09,
+*Elastic, type=ENGINEERING CONSTANTS
+149450, 9320, 9320, 0.261, 0.261, 0.506, 6070, 6070
+  3090,
+******mat1=axial 72%FVF
+*Material, name=Mat1
+*Density
+ 1.623e-09,
+*Elastic, type=ENGINEERING CONSTANTS
+167840, 10300, 10300, 0.244, 0.244, 0.501, 7410, 7410
+  3450,
+****** mat0=matrix tc275-1
+*Material, name=Mat0
+*Density
+ 1.167e-09,
+*Elastic
+4047., 0.363
+*Solid Section, ElSet=Matrix, Material=Mat0
+1.0,
+*Solid Section, ElSet=Yarn1, Material=Mat1, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn2, Material=Mat1, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn3, Material=Mat1, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn4, Material=Mat1, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn5, Material=Mat1, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn6, Material=Mat1, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn7, Material=Mat1, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn8, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn9, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn10, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn11, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn12, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn13, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn14, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn15, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn16, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn17, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn18, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn19, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn20, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn21, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn22, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn23, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn24, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn25, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn26, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn27, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn28, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn29, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn30, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn31, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn32, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn33, Material=Mat2, Orientation=Orientations
+1.0,
+*Solid Section, ElSet=Yarn34, Material=Mat2, Orientation=Orientations
+1.0,
