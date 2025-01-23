@@ -1,10 +1,7 @@
 import os
-import numpy as np
 import jax
 import jax.numpy as jnp
-from jax import grad, jit, vmap, value_and_grad
-import matplotlib.pyplot as plt
-import seaborn as sns
+from jax import value_and_grad
 import csv
 import optax
 import time
@@ -324,14 +321,18 @@ def obj_func(params):
     sigmaprime_a = yarn_a(Vfa, E11f, E22f, E33f, Em, Gm, vm, G12f, v12f, v23f, ha, MAa, Ly)
       
     HomE11, HomE22, HomE33, Homv12, Homv13, Homv23, HomG12, HomG13, HomG23 = stiff_mat(sigmaprime_a, sigmaprime_b1, sigmaprime_b2)
+    
+    # set result here for the, target properties that you want (e.g. HomE11, HomE22)
     # result = jnp.array([HomE11, HomE22, HomE33, Homv12, Homv13, Homv23, HomG12, HomG13, HomG23])
     # result = jnp.array([HomE11, HomE22, HomE33, HomG12, HomG13, HomG23])
     # result = jnp.array([HomE11, HomE22, HomG12])
     result = jnp.array([HomE11, HomE22])
+    
+    # mean squared error loss function
     loss = jnp.mean((result - target) ** 2)
     # loss = jnp.mean(((result - target_mean) / target_std - normalized_target) ** 2)
     
-    # Split the result into three segments
+    # Split the result into three segments, normalizing but separately for moduli, poisson's, and shear
     # result_first_segment = result[:3]
     # result_middle_segment = result[3:6]
     # result_last_segment = result[6:]
@@ -351,25 +352,13 @@ def update(params, opt_state):
     updates, opt_state = optimizer.update(grads, opt_state, params)
     params = optax.apply_updates(params, updates)
 
-    params = jax.tree_util.tree_map(lambda x: jnp.clip(x, 0.1, 0.9), params)
-
-    # Define individual clipping ranges for each parameter
-    # clip_ranges = [(0.67, 0.77), (0.58, 0.68), (0.249, 0.349), (0.184, 0.284)]  # Example ranges for 4 parameters
-    # params = jax.tree_util.tree_map(lambda x, r: jnp.clip(x, r[0], r[1]), params, clip_ranges)
-    
-    # # Ensure the 3rd parameter (index 2) does not exceed the 5th (index 4)
-    # def enforce_constraint(params):
-    #     params = params.at[2].set(jnp.minimum(params[2], params[4]))
-    #     return params
-
-    # # Apply the constraint only if it is violated
-    # params = jax.lax.cond(params[2] > params[4], enforce_constraint, lambda x: x, params)
+    params = jax.tree_util.tree_map(lambda x: jnp.clip(x, 0.1, 0.9), params) # adding a clip to stay within "physical" domain
 
     return loss, params, opt_state
 
 if __name__ == "__main__":
     
-    # Constants
+    # Initializing constants
     # TC275-1 material properties
     Vfa = jnp.float32(0.72)
     Vfb = jnp.float32(0.63)
@@ -391,84 +380,8 @@ if __name__ == "__main__":
     rotation_b1 = jnp.float32(jnp.pi/3)
     rotation_b2 = jnp.float32(-jnp.pi/3)
     
-    '''
-    # For sensitivity calculation
-    # TC275-1
-    Vfa = jnp.float32(0.72)
-    Vfb = jnp.float32(0.63)
-    E11f = jnp.float32(230000.)
-    E22f = jnp.float32(15000.)
-    E33f = jnp.float32(15000.)
-    Em = jnp.float32(4047.)
-    Gm = jnp.float32(1516.)
-    vm = jnp.float32(0.363)
-    G12f = jnp.float32(24000.)
-    v12f = jnp.float32(0.2)
-    v23f = jnp.float32(0.491)
-
-    ha = jnp.float32(0.299)
-    hb = jnp.float32(0.234) 
-    MAa = jnp.float32(0.510)
-    Lx = jnp.float32(18.006)  # RVE unit cell dimension in X
-    Ly = jnp.float32(10.030)  # RVE unit cell dimension in Y
-    rotation_b1 = jnp.float32(jnp.pi/3)
-    rotation_b2 = jnp.float32(-jnp.pi/3)
-
-    #plotting sensitivities
-    inputs = (Vfa, Vfb, E11f, E22f, E33f, G12f, v12f, v23f, Em, Gm, vm, ha, hb, MAa, Lx, Ly, rotation_b1, rotation_b2)
-    sensitivities = jax.jacrev(sensitivity)(inputs)
-
-    # Convert each array inside the tuple to a NumPy array and flatten them
-    sensitivities_plot = [np.array(arr).flatten() for arr in sensitivities]
-
-    # Stack the arrays vertically to create a 2D array
-    sensitivities_2d = np.vstack(sensitivities_plot)
-
-    # Plot names
-    input_names = ['Vfa', 'Vfb', 'E11f', 'E22f', 'E33f', 'G12f', 'v12f', 'v23f', 'Em', 'Gm', 'vm', 'ha', 'hb', 'MAa', 'Lx', 'Ly', 'angle_b1', 'angle_b2']
-    output_names = ['HomE11', 'HomE22', 'HomE33', 'Homv12', 'Homv13', 'Homv23', 'HomG12', 'HomG13', 'HomG23']
-
-    # Improved function to plot sensitivities with larger fonts, higher quality, save images, and style the bars
-    def plot_sensitivities(sensitivities, input_names, output_names, unit_names, save_dir='plots_2', y_axis_unit='',):
-        # Create directory if it doesn't exist
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-
-        for i in range(sensitivities.shape[1]):
-            plt.figure(figsize=(6, 4), dpi=300)  # Increased figure size and DPI for better quality
-            x = np.arange(len(sensitivities[:, i]))  # x-coordinates for the bars
-            
-            # Customizing bars: color and edgecolor
-            plt.bar(x, sensitivities[:, i], align='center', alpha=0.7, 
-                    color='skyblue', edgecolor='black')  # Set bar color and border
-            
-            plt.xticks(x, output_names, rotation=45, fontsize=14)  # Increased font size for x-axis labels
-            
-            # Include the unit in the y-axis label if provided
-            ylabel = f'∂/∂{input_names[i]} ({unit_names[i]})' if unit_names[i] else f'∂/∂{input_names[i]}'
-            plt.ylabel(ylabel, fontsize=14)  # Increased font size for y-axis label
-            
-            # plt.title(f'{input_names[i]}', fontsize=16)  # Increased font size for title
-            plt.grid(True)  # Add gridlines
-            plt.tight_layout()
-
-            # Save the plot as a PNG file
-            filename = f"{input_names[i]}.png"
-            filepath = os.path.join(save_dir, filename)
-            plt.savefig(filepath, format='png', dpi=300)  # Save with higher resolution (300 DPI)
-            
-            plt.show()
-
-    sensitivities_MPa = jnp.concatenate((sensitivities_2d[0:3, :], sensitivities_2d[-3:, :]), axis=0)
-    output_names_MPa = output_names[0:3] + output_names[-3:]
-    unit_names = ['MPa', 'MPa', '', '', '', '', 'MPa', 'MPa', '', '', 'MPa', 'MPa/mm', 'MPa/mm', 'MPa/mm', 'MPa/mm', 'MPa/mm', 'MPa/rad', 'MPa/rad']
-
-    plot_sensitivities(sensitivities_MPa, input_names, output_names_MPa, unit_names)
-    sys.exit()
-    '''
-
     # # all the variables you actually want to optimize for
-    # # scalar = 0.5
+    # scalar = 0.5
     # Vfa = jnp.float32(0.72 *scalar)
     # Vfb = jnp.float32(0.63 *scalar)
     # ha = jnp.float32(0.299 *scalar)
@@ -501,9 +414,7 @@ if __name__ == "__main__":
     params = jnp.array([Vfa, Vfb, ha, hb])
 
     # Target homogenized properties (TC275-1)
-    # target = jnp.array([45734.17, 49799.59, 11208.709, 0.27368993, 0.35366523, 0.35366526, 17691.572, 3886.6843, 4390.9756]) #100 integration points
-    # target = jnp.array([4.5721180e+04, 5.0474207e+04, 1.1229098e+04, 2.7199340e-01, 3.3305216e-01, 3.3305219e-01, 1.7697279e+04, 3.8809763e+03, 4.1473545e+03]) #50 int points
-    # target = jnp.array([4.5721191e+04, 5.0474203e+04, 1.1229098e+04, 2.7199343e-01, 3.3305216e-01, 3.3305225e-01, 1.7697281e+04, 3.8809763e+03, 4.1473545e+03]) #10 int points
+    # target = jnp.array([4.5721191e+04, 5.0474203e+04, 1.1229098e+04, 2.7199343e-01, 3.3305216e-01, 3.3305225e-01, 1.7697281e+04, 3.8809763e+03, 4.1473545e+03]) #forward
     # target = jnp.array([42260, 50080, 10720, 0.242, 0.375, 0.335, 15810, 3830, 3520]) #FEA
     # target = jnp.array([43400, 45500, 16500]) #experiment
     target = jnp.array([48097.697, 48097.697]) #10 int points, in-plane isotropic
@@ -514,7 +425,7 @@ if __name__ == "__main__":
     # target_std = jnp.std(target)
     # normalized_target = (target - target_mean) / target_std
 
-    # Split the target into three segments
+    # Normalizing but separately for moduli, poisson's, and shear
     # first_segment = target[:3]
     # middle_segment = target[3:6]
     # last_segment = target[6:]
@@ -535,13 +446,13 @@ if __name__ == "__main__":
     opt_state = optimizer.init(params)
     
     num_epochs = 1000
-    csv_name = 'Vfa_Vfb_ha_hb_LR0.001_isotarget2_normsep_clip_truestart_E1000_fix'
+    csv_name = 'csv output filename here'  
     start_time = time.time()
 
     # Create the CSV file and write the header
     with open(f'{csv_name}.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['Epoch', 'Vfa', 'Vfb', 'ha', 'hb', 'Loss'])
+        writer.writerow(['Epoch', 'Vfa', 'Vfb', 'ha', 'hb', 'Loss']) # change these headers based on your input params being optimized
         
     # Optimization loop
     for i in range(num_epochs):

@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 import jax.numpy as jnp
-from jax import jit
-import matplotlib.ticker as mticker
 import matplotlib.pyplot as plt
 
 def yarn_a(Vf, E11f, E22f, E33f, Em, Gm, vm, G12f, v12f, v23f, ha, MAa, Ly):
@@ -318,11 +316,11 @@ rotation_b1 = jnp.float32(jnp.pi/3)
 rotation_b2 = jnp.float32(-jnp.pi/3)
 
 # Read the CSV file into a DataFrame
-csv_name = 'Vfa_Vfb_ha_hb_LR0.001_isotarget2_normsep_clip_truestart_E1000'
+csv_name = 'csv output filename here' 
 df = pd.read_csv(f'{csv_name}.csv')[0:151]
 df['Epoch'] = df['Epoch'].astype(int)
 
-# Define target values for each parameter (replace with appropriate target values)
+# Define target values for each parameter (for plotting)
 target_values = {
     'E11': 48.1,
     'E22': 48.1,
@@ -361,9 +359,7 @@ plt.legend(fontsize=14)
 
 # Improve x-tick readability
 plt.xticks(np.arange(0, len(df), step=50))
-
 plt.show()
-
 
 # Plotting the loss function separately
 plt.figure(figsize=(6, 4), dpi=300)
@@ -378,6 +374,6 @@ plt.xticks(range(0, 151, 50))
 # Adding an inset to zoom in on the later epochs
 ax_inset = plt.axes([0.5, 0.4, 0.35, 0.35])
 ax_inset.plot(df['Epoch'], df['Loss'], color='orange')
-ax_inset.set_xlim(df['Epoch'].iloc[-51], df['Epoch'].iloc[-1])  # Zoom into the last 200 epochs
+ax_inset.set_xlim(df['Epoch'].iloc[-51], df['Epoch'].iloc[-1])  # Zoom into the last epochs
 ax_inset.set_ylim(df['Loss'].iloc[-51:].min(), df['Loss'].iloc[-51:].max())
 ax_inset.set_xticks(range(df['Epoch'].iloc[-51], df['Epoch'].iloc[-1]+1, 10))  # Fewer ticks for clarity
